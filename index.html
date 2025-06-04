@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WISIT รับฝากขายอสังหาริมทรัพย์</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+        .card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .card img {
+            transition: all 0.5s ease;
+        }
+        .card:hover img {
+            transform: scale(1.05);
+        }
+        .price-tag {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        }
+        .search-outer-container { /* New container for H2 and toggle button */
+            /* background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); */
+            /* Removed sticky and background from here, moved to inner filter section if needed */
+        }
+        #filter-section.sticky-filter { /* Class to be added when filter is visible and sticky */
+             background: rgba(255, 255, 255, 0.9);
+             backdrop-filter: blur(10px);
+             position: sticky;
+             top: 0;
+             z-index: 40;
+             padding-top: 1rem; /* py-4 equivalent */
+             padding-bottom: 1rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            max-width: 900px;
+            width: 90%;
+            border-radius: 12px;
+            overflow: hidden;
+            animation: modalFadeIn 0.3s;
+        }
+        @keyframes modalFadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        .slider { position: relative; height: 400px; }
+        .slider-image { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease-in-out; }
+        .slider-image.active { opacity: 1; }
+        .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 10; }
+        .slider-nav button { background: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; }
+        .slider-nav button:hover { background: rgba(0, 0, 0, 0.8); }
+        .slider-dots { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 8px; z-index: 10; }
+        .slider-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.5); cursor: pointer; }
+        .slider-dot.active { background: white; }
+        .range-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #d3d3d3; outline: none; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+        .range-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+        .contact-button { transition: all 0.3s ease; }
+        .contact-button:hover { transform: translateY(-2px); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="header-gradient text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="https://storage.googleapis.com/fastwork-static/fcab71a2-e308-45eb-97dc-3018f83eb14c.jpg" alt="WISIT Logo" class="h-16 mr-3 rounded-lg">
+                <div>
+                    <h1 class="text-2xl font-bold">WISIT</h1>
+                    <p class="text-sm">รับฝากขายอสังหาริมทรัพย์</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="tel:0812702525" class="contact-button flex items-center bg-white text-blue-600 px-4 py-2 rounded-full shadow-md"><i class="fas fa-phone-alt mr-2"></i><span>081 270 2525</span></a>
+                <a href="https://www.facebook.com/House2HomebyWisit" target="_blank" class="contact-button flex items-center bg-white text-blue-600 px-4 py-2 rounded-full shadow-md"><i class="fab fa-facebook-f mr-2"></i><span>Facebook</span></a>
+                <a href="mailto:wisitproperty@hotmail.com" class="contact-button flex items-center bg-white text-blue-600 px-4 py-2 rounded-full shadow-md"><i class="fas fa-envelope mr-2"></i><span>Email</span></a>
+                <a href="https://line.me/R/ti/p/%40478rjfwu" target="_blank" class="contact-button flex items-center bg-white text-blue-600 px-4 py-2 rounded-full shadow-md"><i class="fab fa-line mr-2"></i><span>LINE</span></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Section Wrapper -->
+    <div class="search-outer-container container mx-auto px-4 py-6"> 
+        <div class="flex justify-between items-center mb-4">
+            <button id="toggle-filter-button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md transition duration-300 flex items-center">
+                <i id="toggle-filter-icon" class="fas fa-filter mr-2"></i>
+                <span id="toggle-filter-text">ค้นหาอสังหาริมทรัพย์</span>
+            </button>
+        </div>
+
+        <div id="filter-section" class="hidden shadow-md"> 
+            <div class="bg-white rounded-xl p-4 shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ประเภททรัพย์</label>
+                        <select id="property-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">ทั้งหมด</option>
+                            {/* Static options can remain, JS will add dynamic ones if not present */}
+                            <option value="บ้านเดี่ยว">บ้านเดี่ยว</option>
+                            <option value="ทาวน์โฮม">ทาวน์โฮม</option>
+                            <option value="คอนโดมิเนียม">คอนโดมิเนียม</option>
+                            <option value="ที่ดิน">ที่ดิน</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่ตั้ง</label>
+                        <input type="text" id="location" placeholder="เช่น กรุงเทพ, ปทุมธานี" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ขนาด (ตร.ว./ตร.ม.)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="size-min" placeholder="ต่ำสุด" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <span>-</span>
+                            <input type="number" id="size-max" placeholder="สูงสุด" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ราคา (บาท)</label>
+                        <div class="mb-2">
+                            <input type="range" id="price-range" min="0" max="50000000" step="100000" value="25000000" class="range-slider">
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>0</span>
+                            <span id="price-display">25,000,000</span>
+                            <span>50M</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-center">
+                    <button id="search-button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition duration-300 flex items-center">
+                        <i class="fas fa-search mr-2"></i>
+                        ค้นหา
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Property Listings -->
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">อสังหาริมทรัพย์ล่าสุด</h2>
+        <div id="property-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Property cards will be generated here by JavaScript -->
+        </div>
+        <div id="no-results" class="hidden text-center py-12">
+            <i class="fas fa-search text-5xl text-gray-100 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-600">ไม่พบรายการอสังหาริมทรัพย์ที่ตรงกับเงื่อนไขการค้นหา</h3>
+            <p class="text-gray-500 mt-2">กรุณาลองปรับเปลี่ยนเงื่อนไขการค้นหาใหม่</p>
+        </div>
+    </main>
+
+    <!-- Property Detail Modal -->
+    <div id="property-modal" class="modal">
+        <div class="modal-content">
+            <div class="relative">
+                <div class="slider" id="modal-slider"></div>
+                <div class="slider-nav">
+                    <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="slider-dots" id="slider-dots"></div>
+                <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-70 transition" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 id="modal-title" class="text-2xl font-bold text-gray-800"></h3>
+                        <p id="modal-location" class="text-gray-600 flex items-center mt-1"><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i><span></span></p>
+                    </div>
+                    <div class="price-tag text-white px-4 py-2 rounded-lg text-xl font-bold" id="modal-price"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-gray-800">รายละเอียดทรัพย์</h4>
+                        <p id="modal-description" class="text-gray-600"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 text-gray-800">ข้อมูลทั่วไป</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center"><i class="fas fa-home text-blue-600 mr-2"></i><div><p class="text-sm text-gray-500">ประเภททรัพย์</p><p id="modal-type" class="font-medium"></p></div></div>
+                            <div class="flex items-center"><i class="fas fa-ruler-combined text-blue-600 mr-2"></i><div><p class="text-sm text-gray-500">ขนาด</p><p id="modal-size" class="font-medium"></p></div></div>
+                            <div class="flex items-center"><i class="fas fa-tag text-blue-600 mr-2"></i><div><p class="text-sm text-gray-500">รหัสทรัพย์</p><p id="modal-id" class="font-medium"></p></div></div>
+                            <div class="flex items-center"><i class="fas fa-building text-blue-600 mr-2"></i><div><p class="text-sm text-gray-500">โครงการ</p><p id="modal-project" class="font-medium"></p></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-semibold text-lg mb-2 text-gray-800">สถานที่ใกล้เคียง</h4>
+                    <p id="modal-nearby" class="text-gray-600"></p>
+                </div>
+                <div class="border-t pt-6">
+                    <h4 class="font-semibold text-lg mb-3 text-gray-800">สนใจติดต่อ</h4>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="tel:0812702525" class="contact-button flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"><i class="fas fa-phone-alt mr-2"></i><span>081 270 2525</span></a>
+                        <a href="https://www.facebook.com/House2HomebyWisit" target="_blank" class="contact-button flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"><i class="fab fa-facebook-f mr-2"></i><span>Facebook</span></a>
+                        <a href="https://line.me/R/ti/p/%40478rjfwu" target="_blank" class="contact-button flex items-center bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600"><i class="fab fa-line mr-2"></i><span>LINE</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-blue-500 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <div class="flex items-center mb-4"><img src="https://storage.googleapis.com/fastwork-static/fcab71a2-e308-45eb-97dc-3018f83eb14c.jpg" alt="WISIT Logo" class="h-12 mr-3 rounded-lg"><div><h3 class="text-xl font-bold">WISIT</h3><p class="text-sm text-gray-100">รับฝากขายอสังหาริมทรัพย์</p></div></div>
+                    <p class="text-gray-100 mb-4">"ซื่อตรง รับผิดชอบ ใส่ใจบริการ"</p>
+                    <div class="flex space-x-4">
+                        <a href="https://www.facebook.com/House2HomebyWisit" target="_blank" class="text-gray-100 hover:text-white transition"><i class="fab fa-facebook-f text-xl"></i></a>
+                        <a href="https://line.me/R/ti/p/%40478rjfwu" target="_blank" class="text-gray-100 hover:text-white transition"><i class="fab fa-line text-xl"></i></a>
+                        <a href="mailto:wisitproperty@hotmail.com" class="text-gray-100 hover:text-white transition"><i class="fas fa-envelope text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">ติดต่อเรา</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center"><i class="fas fa-phone-alt w-6 text-gray-100"></i><span>081 270 2525</span></div>
+                        <div class="flex items-center"><i class="fab fa-facebook-f w-6 text-gray-100"></i><a href="https://www.facebook.com/House2HomebyWisit" target="_blank" class="hover:underline">WISIT รับฝากขายอสังหาริมทรัพย์</a></div>
+                        <div class="flex items-center"><i class="fas fa-envelope w-6 text-gray-100"></i><a href="mailto:wisitproperty@hotmail.com" class="hover:underline">wisitproperty@hotmail.com</a></div>
+                        <div class="flex items-center"><i class="fab fa-line w-6 text-gray-100"></i><a href="https://line.me/R/ti/p/%40478rjfwu" target="_blank" class="hover:underline">@Ws.estate789</a></div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-100 text-sm">© WISIT รับฝากขายอสังหาริมทรัพย์. All rights reserved.</p>
+                <a href="https://lin.ee/stQjk0XK" target="_blank" class="text-gray-100 hover:text-white text-sm mt-2 md:mt-0">©Dev.Dil</a>
+            </div>
+        </div>
+    </footer>
+
+<script>
+    // Global variable to store all properties fetched from Google Sheets
+    let allFetchedProperties = [];
+    let currentSlideIndex = 0;
+
+    function formatPriceToDisplay(price) {
+        if (typeof price !== 'number' || isNaN(price) || price === 0) {
+            return "ติดต่อสอบถาม";
+        }
+        return price.toLocaleString('th-TH') + " บาท";
+    }
+    function formatPriceForRange(price) {
+        if (typeof price !== 'number' || isNaN(price)) {
+            return "0";
+        }
+        return price.toLocaleString('th-TH');
+    }
+
+    function generatePropertyCards(propertiesToDisplay) {
+        const propertyGrid = document.getElementById('property-grid');
+        const noResults = document.getElementById('no-results');
+        
+        if (!propertyGrid || !noResults) {
+            console.error("Element 'property-grid' or 'no-results' not found in the DOM for generatePropertyCards.");
+            document.body.innerHTML = "<p style='color:red; text-align:center; font-size:1.2em;'>ข้อผิดพลาด: ไม่พบส่วนแสดงผลหลัก (grid/no-results) กรุณาตรวจสอบ HTML.</p>";
+            return;
+        }
+        
+        propertyGrid.innerHTML = ''; 
+        
+        if (!propertiesToDisplay || propertiesToDisplay.length === 0) {
+            propertyGrid.classList.add('hidden');
+            noResults.classList.remove('hidden');
+            return;
+        }
+        
+        propertyGrid.classList.remove('hidden');
+        noResults.classList.add('hidden');
+        
+        propertiesToDisplay.forEach(property => {
+            const card = document.createElement('div');
+            card.className = 'card bg-white rounded-xl overflow-hidden shadow-lg flex flex-col';
+            const placeholderImage = 'https://via.placeholder.com/400x300.png?text=No+Image';
+            const imageUrl = property.image || placeholderImage;
+
+            card.innerHTML = `
+                <div class="relative h-48 overflow-hidden">
+                    <img src="${imageUrl}" alt="${property.project || property.type || 'อสังหาริมทรัพย์'}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='${placeholderImage}';">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 m-2 rounded-lg font-semibold text-sm">
+                        ${property.type || 'N/A'}
+                    </div>
+                </div>
+                <div class="p-4 flex flex-col flex-grow">
+                    <h3 class="font-bold text-lg text-gray-800 mb-1 truncate">${property.project || 'N/A'}</h3>
+                    <p class="text-gray-600 text-sm mb-2 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-1 text-blue-600"></i>
+                        <span class="truncate">${property.location || 'N/A'}</span>
+                    </p>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">${property.description || 'ไม่มีรายละเอียด'}</p>
+                    <div class="mt-auto">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center">
+                                <i class="fas fa-ruler-combined text-blue-600 mr-1"></i>
+                                <span class="text-sm font-medium">${property.size || 'N/A'}</span>
+                            </div>
+                            <div class="price-tag text-white px-3 py-1 rounded-lg font-bold">
+                                ${formatPriceToDisplay(property.price)}
+                            </div>
+                        </div>
+                        <button class="view-details w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg transition duration-300 flex items-center justify-center" data-property-id="${property.id}">
+                            <i class="fas fa-search mr-2"></i>
+                            ดูรายละเอียด
+                        </button>
+                    </div>
+                </div>
+            `;
+            propertyGrid.appendChild(card);
+            
+            const viewDetailsButton = card.querySelector('.view-details');
+            if (viewDetailsButton) {
+                viewDetailsButton.addEventListener('click', () => {
+                    const fullProperty = allFetchedProperties.find(p => p.id === property.id);
+                    if (fullProperty) {
+                        openPropertyModal(fullProperty);
+                    } else {
+                        console.error('Property not found for modal by ID:', property.id);
+                    }
+                });
+            }
+        });
+    }
+
+    const priceRangeSlider = document.getElementById('price-range');
+    const priceDisplaySpan = document.getElementById('price-display');
+    if (priceRangeSlider && priceDisplaySpan) {
+        priceRangeSlider.addEventListener('input', () => {
+            priceDisplaySpan.textContent = formatPriceForRange(parseInt(priceRangeSlider.value));
+        });
+    }
+
+    const searchButton = document.getElementById('search-button');
+    if (searchButton) {
+        searchButton.addEventListener('click', () => {
+            const propertyTypeFilter = document.getElementById('property-type').value;
+            const locationFilterText = document.getElementById('location').value.toLowerCase();
+            const sizeMinFilter = parseInt(document.getElementById('size-min').value) || 0;
+            const sizeMaxFilter = parseInt(document.getElementById('size-max').value) || Infinity;
+            const maxPriceFilter = priceRangeSlider ? parseInt(priceRangeSlider.value) : Infinity;
+            
+            const filtered = allFetchedProperties.filter(prop => {
+                let typeMatch = !propertyTypeFilter || (prop.type === propertyTypeFilter);
+                let locationMatch = !locationFilterText || (prop.location || '').toLowerCase().includes(locationFilterText) || (prop.project || '').toLowerCase().includes(locationFilterText);
+                const propSizeString = String(prop.size || "");
+                const propSizeNumericMatch = propSizeString.match(/^[0-9\.]+/);
+                const propSizeNumeric = propSizeNumericMatch ? parseFloat(propSizeNumericMatch[0]) : NaN;
+                let sizeMatch = true;
+                if (!isNaN(propSizeNumeric)) {
+                    if (sizeMinFilter && propSizeNumeric < sizeMinFilter) sizeMatch = false;
+                    if (sizeMaxFilter !== Infinity && propSizeNumeric > sizeMaxFilter) sizeMatch = false;
+                } else if (sizeMinFilter || sizeMaxFilter !== Infinity) {
+                    const sizeMinText = document.getElementById('size-min').value;
+                    const sizeMaxText = document.getElementById('size-max').value;
+                    if (sizeMinText && !propSizeString.toLowerCase().includes(sizeMinText.toLowerCase())) sizeMatch = false;
+                    if (sizeMaxText && !propSizeString.toLowerCase().includes(sizeMaxText.toLowerCase())) sizeMatch = false;
+                }
+                let priceMatch = true;
+                if (prop.price === 0 || prop.price === undefined || prop.price === null) { /* Keep "ติดต่อสอบถาม" */ }
+                else if (prop.price > maxPriceFilter) priceMatch = false;
+                if (maxPriceFilter === 0 && prop.price > 0) priceMatch = false;
+                return typeMatch && locationMatch && sizeMatch && priceMatch;
+            });
+            generatePropertyCards(filtered);
+        });
+    }
+
+    function openPropertyModal(property) {
+        const modal = document.getElementById('property-modal');
+        const sliderContainer = document.getElementById('modal-slider');
+        const dotsContainer = document.getElementById('slider-dots');
+
+        if (!modal || !sliderContainer || !dotsContainer || !document.getElementById('modal-title') || !document.getElementById('modal-location') || !document.getElementById('modal-price') || !document.getElementById('modal-description') || !document.getElementById('modal-type') || !document.getElementById('modal-size') || !document.getElementById('modal-id') || !document.getElementById('modal-project') || !document.getElementById('modal-nearby')) {
+            console.error("One or more modal elements are missing from the DOM.");
+            alert("เกิดข้อผิดพลาดในการแสดงรายละเอียดทรัพย์สิน กรุณาลองใหม่อีกครั้ง");
+            return;
+        }
+        
+        document.getElementById('modal-title').textContent = property.project || 'N/A';
+        document.getElementById('modal-location').querySelector('span').textContent = property.location || 'N/A';
+        document.getElementById('modal-price').textContent = formatPriceToDisplay(property.price);
+        document.getElementById('modal-description').textContent = property.description || 'ไม่มีรายละเอียด';
+        document.getElementById('modal-type').textContent = property.type || 'N/A';
+        document.getElementById('modal-size').textContent = property.size || 'N/A';
+        document.getElementById('modal-id').textContent = property.id || 'N/A';
+        document.getElementById('modal-project').textContent = property.project || 'N/A';
+        document.getElementById('modal-nearby').textContent = property.nearby || 'ไม่มีข้อมูล';
+        
+        sliderContainer.innerHTML = '';
+        dotsContainer.innerHTML = '';
+        const imagesForSlider = (property.images && property.images.length > 0) ? property.images.filter(Boolean) : [];
+        if (imagesForSlider.length === 0) imagesForSlider.push('https://via.placeholder.com/800x400.png?text=No+Images+Available');
+        currentSlideIndex = 0;
+        const placeholderModalImage = 'https://via.placeholder.com/800x400.png?text=Image+Error';
+
+        imagesForSlider.forEach((imageUrl, index) => {
+            const imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            imgElement.alt = `${property.project || 'Property'} - Image ${index + 1}`;
+            imgElement.className = `slider-image ${index === 0 ? 'active' : ''}`;
+            imgElement.onerror = function() { this.onerror=null; this.src=placeholderModalImage; };
+            sliderContainer.appendChild(imgElement);
+            const dot = document.createElement('div');
+            dot.className = `slider-dot ${index === 0 ? 'active' : ''}`;
+            dot.addEventListener('click', () => { showSlide(index, imagesForSlider.length); });
+            dotsContainer.appendChild(dot);
+        });
+        
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        const prevBtn = modal.querySelector('.prev-btn');
+        const nextBtn = modal.querySelector('.next-btn');
+        if (prevBtn) prevBtn.onclick = () => { showSlide(currentSlideIndex - 1, imagesForSlider.length); };
+        if (nextBtn) nextBtn.onclick = () => { showSlide(currentSlideIndex + 1, imagesForSlider.length); };
+    }
+
+    function closeModalGlobally() {
+        const modal = document.getElementById('property-modal');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    window.closeModal = closeModalGlobally;
+
+    function showSlide(index, totalImages) {
+        const imageElements = document.querySelectorAll('#modal-slider .slider-image');
+        const dotElements = document.querySelectorAll('#slider-dots .slider-dot');
+        if (totalImages === 0) return;
+        if (index < 0) index = totalImages - 1;
+        else if (index >= totalImages) index = 0;
+        imageElements.forEach(img => img.classList.remove('active'));
+        dotElements.forEach(dot => dot.classList.remove('active'));
+        if (imageElements[index]) imageElements[index].classList.add('active');
+        if (dotElements[index]) dotElements[index].classList.add('active');
+        currentSlideIndex = index;
+    }
+
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('property-modal');
+        if (event.target === modal) closeModalGlobally();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialLoadingMessageContainer = document.getElementById('property-grid');
+        const toggleFilterButton = document.getElementById('toggle-filter-button');
+        const filterSection = document.getElementById('filter-section');
+        const toggleFilterIcon = document.getElementById('toggle-filter-icon');
+        const toggleFilterText = document.getElementById('toggle-filter-text');
+
+        if (toggleFilterButton && filterSection && toggleFilterIcon && toggleFilterText) {
+            if (filterSection.classList.contains('hidden')) {
+                toggleFilterIcon.classList.remove('fa-times');
+                toggleFilterIcon.classList.add('fa-filter');
+                toggleFilterText.textContent = 'ค้นหา';
+            } else {
+                toggleFilterIcon.classList.remove('fa-filter');
+                toggleFilterIcon.classList.add('fa-times');
+                toggleFilterText.textContent = 'ซ่อนตัวกรอง';
+            }
+            toggleFilterButton.addEventListener('click', () => {
+                filterSection.classList.toggle('hidden');
+                filterSection.classList.toggle('sticky-filter', !filterSection.classList.contains('hidden')); // Add/remove sticky class
+
+                if (filterSection.classList.contains('hidden')) {
+                    toggleFilterIcon.classList.remove('fa-times');
+                    toggleFilterIcon.classList.add('fa-filter');
+                    toggleFilterText.textContent = 'ค้นหา';
+                } else {
+                    toggleFilterIcon.classList.remove('fa-filter');
+                    toggleFilterIcon.classList.add('fa-times');
+                    toggleFilterText.textContent = 'ซ่อนตัวกรอง';
+                    // Optional: Scroll to filter section when shown and it's sticky
+                    // setTimeout(() => { // Timeout to allow DOM update
+                    //    if (filterSection.classList.contains('sticky-filter')) {
+                    //        filterSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    //    }
+                    // }, 100);
+                }
+            });
+        } else {
+            console.warn("Toggle filter elements not found. Toggle functionality will not work.");
+        }
+
+        if (initialLoadingMessageContainer) {
+            initialLoadingMessageContainer.innerHTML = '<p class="text-center text-gray-500 py-10 col-span-full">กำลังโหลดข้อมูลทรัพย์สิน...</p>';
+        } else {
+             console.error("Element 'property-grid' for loading message not found.");
+             document.body.innerHTML = "<p style='color:red; text-align:center; font-size:1.2em;'>ข้อผิดพลาด: ไม่พบส่วนแสดงผลหลัก กรุณาตรวจสอบ HTML.</p>";
+             return;
+        }
+        
+        if (priceRangeSlider && priceDisplaySpan) {
+             priceDisplaySpan.textContent = formatPriceForRange(parseInt(priceRangeSlider.value));
+        }
+
+        google.script.run
+            .withSuccessHandler(function(dataFromServer) {
+                const propertyGrid = document.getElementById('property-grid');
+                const noResultsDiv = document.getElementById('no-results');
+                if (!propertyGrid || !noResultsDiv) {
+                    console.error("Critical elements 'property-grid' or 'no-results' missing after data load.");
+                    if (propertyGrid) propertyGrid.innerHTML = "<p class='text-center text-red-500 py-10 col-span-full'>ข้อผิดพลาด: ไม่พบส่วนแสดงผลข้อมูล</p>";
+                    else document.body.innerHTML = "<p style='color:red; text-align:center; font-size:1.2em;'>ข้อผิดพลาด: ไม่พบส่วนแสดงผลข้อมูล กรุณาตรวจสอบ HTML.</p>";
+                    return;
+                }
+                if (dataFromServer.error) {
+                    console.error("Server error:", dataFromServer.error);
+                    propertyGrid.innerHTML = `<p class="text-center text-red-500 py-10 col-span-full">เกิดข้อผิดพลาดในการโหลดข้อมูล: ${dataFromServer.error}</p>`;
+                    return;
+                }
+                allFetchedProperties = dataFromServer;
+                generatePropertyCards(allFetchedProperties);
+                const propertyTypeSelect = document.getElementById('property-type');
+                if (propertyTypeSelect) {
+                    const types = [...new Set(allFetchedProperties.map(p => p.type).filter(Boolean))];
+                    types.sort();
+                    const existingOptionValues = Array.from(propertyTypeSelect.options).map(opt => opt.value);
+                    types.forEach(type => {
+                        if (!existingOptionValues.includes(type)) {
+                            const option = document.createElement('option');
+                            option.value = type;
+                            option.textContent = type;
+                            propertyTypeSelect.appendChild(option);
+                        }
+                    });
+                }
+            })
+            .withFailureHandler(function(error) {
+                console.error('Error calling Apps Script:', error);
+                const propertyGrid = document.getElementById('property-grid');
+                if (propertyGrid) propertyGrid.innerHTML = `<p class="text-center text-red-500 py-10 col-span-full">เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}</p>`;
+                else document.body.innerHTML = `<p style='color:red; text-align:center; font-size:1.2em;'>เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบ HTML.</p>`;
+            })
+            .getPropertyData();
+    });
+</script>
+</body>
+</html>
