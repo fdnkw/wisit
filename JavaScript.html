@@ -1,0 +1,170 @@
+<script>
+  let allProperties = [];
+  const propertyGrid = document.getElementById('property-grid');
+  const loadingIndicator = document.getElementById('loading-indicator');
+  const noResultsDiv = document.getElementById('no-results');
+  const typeFilter = document.getElementById('type-filter');
+  const locationFilter = document.getElementById('location-filter');
+  const sizeFilter = document.getElementById('size-filter');
+  const minPriceFilter = document.getElementById('min-price-filter');
+  const maxPriceFilter = document.getElementById('max-price-filter');
+  const searchButton = document.getElementById('search-button');
+  const resetButton = document.getElementById('reset-button');
+
+  // Modal elements
+  const modal = document.getElementById('property-modal');
+  const modalBody = document.getElementById('modal-body');
+  const closeModalButton = document.querySelector('.close-button');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchProperties();
+    searchButton.addEventListener('click', filterProperties);
+    resetButton.addEventListener('click', resetFiltersAndSearch);
+    closeModalButton.addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => {
+      if (event.target == modal) {
+        closeModal();
+      }
+    });
+  });
+
+  function fetchProperties() {
+    loadingIndicator.style.display = 'block';
+    noResultsDiv.style.display = 'none';
+    propertyGrid.innerHTML = '';
+    google.script.run
+      .withSuccessHandler(data => {
+        if (data.error) {
+          console.error("Error from server:", data.error);
+          loadingIndicator.textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + data.error;
+          return;
+        }
+        allProperties = data;
+        populateTypeFilter(allProperties);
+        displayProperties(allProperties);
+        loadingIndicator.style.display = 'none';
+      })
+      .withFailureHandler(error => {
+        console.error('Error fetching properties:', error);
+        loadingIndicator.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์';
+      })
+      .getPropertyData();
+  }
+
+  function populateTypeFilter(properties) {
+    const types = [...new Set(properties.map(p => p.type).filter(Boolean))];
+    types.sort();
+    types.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type;
+      typeFilter.appendChild(option);
+    });
+  }
+
+  function displayProperties(propertiesToDisplay) {
+    propertyGrid.innerHTML = ''; // Clear previous results
+    if (propertiesToDisplay.length === 0) {
+      noResultsDiv.style.display = 'block';
+      return;
+    }
+    noResultsDiv.style.display = 'none';
+
+    propertiesToDisplay.forEach(prop => {
+      const card = document.createElement('div');
+      card.className = 'property-card';
+      card.innerHTML = `
+        <div class="image-container">
+          <img src="${prop.mainImage ? prop.mainImage : 'https://via.placeholder.com/300x200.png?text=No+Image'}" alt="${prop.projectName || prop.type}" class="main-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200.png?text=Image+Error';">
+        </div>
+        <div class="info">
+          <div>
+            <div class="price">${prop.price ? prop.price.toLocaleString('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }) : 'ติดต่อสอบถาม'}</div>
+            <div class="type"><strong>ประเภท:</strong> ${prop.type || 'N/A'}</div>
+            <div class="location-summary"><strong>ทำเล:</strong> ${prop.location.substring(0,30) || 'N/A'}...</div>
+            <div class="location-summary"><strong>โครงการ:</strong> ${prop.projectName.substring(0,30) || 'N/A'}...</div>
+          </div>
+          <button class="details-button">ดูรายละเอียด</button>
+        </div>
+      `;
+      card.querySelector('.details-button').addEventListener('click', () => showPropertyDetails(prop));
+      propertyGrid.appendChild(card);
+    });
+  }
+
+  function filterProperties() {
+    loadingIndicator.style.display = 'block';
+    propertyGrid.innerHTML = '';
+    noResultsDiv.style.display = 'none';
+
+    // Use setTimeout to allow UI update before heavy filtering
+    setTimeout(() => {
+        const typeValue = typeFilter.value.toLowerCase();
+        const locationValue = locationFilter.value.toLowerCase().trim();
+        const sizeValue = sizeFilter.value.toLowerCase().trim();
+        const minPrice = parseFloat(minPriceFilter.value) || 0;
+        const maxPrice = parseFloat(maxPriceFilter.value) || Infinity;
+
+        const filtered = allProperties.filter(prop => {
+        const typeMatch = !typeValue || (prop.type && prop.type.toLowerCase().includes(typeValue));
+        const locationMatch = !locationValue || (prop.location && prop.location.toLowerCase().includes(locationValue)) || (prop.projectName && prop.projectName.toLowerCase().includes(locationValue));
+        
+        // Simple size match: checks if the size string contains the input.
+        // For more complex size filtering (e.g., ">=100"), this logic would need expansion.
+        const sizeMatch = !sizeValue || (prop.size && String(prop.size).toLowerCase().includes(sizeValue));
+        
+        const priceMatch = prop.price >= minPrice && prop.price <= maxPrice;
+
+        return typeMatch && locationMatch && sizeMatch && priceMatch;
+        });
+        
+        displayProperties(filtered);
+        loadingIndicator.style.display = 'none';
+    }, 10); // Small delay
+  }
+  
+  function resetFiltersAndSearch() {
+    typeFilter.value = "";
+    locationFilter.value = "";
+    sizeFilter.value = "";
+    minPriceFilter.value = "";
+    maxPriceFilter.value = "";
+    fetchProperties(); // Or displayProperties(allProperties) if you want to avoid re-fetching
+  }
+
+  function showPropertyDetails(property) {
+    let detailsHtml = `
+      <h3>${property.projectName || property.type} (${property.id})</h3>
+      <img src="${property.mainImage || 'https://via.placeholder.com/600x400.png?text=No+Image'}" alt="${property.projectName}" style="width:100%; max-width:400px; height:auto; margin-bottom:15px; border-radius: 4px;" onerror="this.onerror=null;this.src='https://via.placeholder.com/600x400.png?text=Image+Error';">
+      <p><strong>ราคา:</strong> ${property.price ? property.price.toLocaleString('th-TH', { style: 'currency', currency: 'THB' }) : 'ติดต่อสอบถาม'}</p>
+    `;
+    
+    // Display all raw data from the sheet for this property
+    for (const key in property.raw) {
+        // Skip image columns that are already handled or empty, and the main image
+        if (key.startsWith("ภาพประกอบ") || key === "รูปภาพ" || !property.raw[key]) continue;
+        if (key === "ราคา" || key === "รหัสทรัพย์" || key === "ชื่อโครงการ" || key === "ประเภททรัพย์") continue; // Already shown prominently
+
+        detailsHtml += `<p><strong>${key}:</strong> ${property.raw[key]}</p>`;
+    }
+
+    if (property.galleryImages && property.galleryImages.length > 0) {
+      detailsHtml += `<h4>ภาพประกอบเพิ่มเติม:</h4><div class="modal-gallery">`;
+      property.galleryImages.forEach(imgUrl => {
+        if (imgUrl) { // Check if imgUrl is not empty or null
+          detailsHtml += `<img src="${imgUrl}" alt="ภาพประกอบ" onerror="this.style.display='none';">`;
+        }
+      });
+      detailsHtml += `</div>`;
+    }
+    
+    modalBody.innerHTML = detailsHtml;
+    modal.style.display = "block";
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+    modalBody.innerHTML = ""; // Clear content to free up memory
+  }
+
+</script>
